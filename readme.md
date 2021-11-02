@@ -1,3 +1,158 @@
+# Android--UI之ImageSwitcher
+
+**前言**
+
+　　这篇博客来聊一聊AndroidUI开发中ImageSwitcher控件的使用。ImageSwitcher控件与ImageView类似，都可以用于显示图片，但是ImageSwitcher通过名字可以看出，主要是用于多张图片的切换显示。在本篇博客中，会介绍ImageSwitcher控件的基本属性的设置以及常用方法的调用。在最后会通过一个示例Demo来展示本篇博客中讲到的一些内容。
+
+**ImageSwitcher**
+
+　　[ImageSwitcher](http://developer.android.com/reference/android/widget/ImageSwitcher.html)是一个图片切换器，它间接继承自FrameLayout类，和ImageView相比，多了一个功能，那就是它说显示的图片切换时，可以设置动画效果，类似于淡进淡出效果，以及左进右出滑动等效果。
+
+　　既然ImageSwitcher是用来显示图片的控件，AndroidAPI为我们提供了三种不同方法来设定不同的图像来源，方法有：
+
+*   setImageDrawable(Drawable)：指定一个Drawable对象，用来给ImageSwitcher显示。
+*   setImageResource(int)：指定一个资源的ID，用来给ImageSwitcher显示。
+*   setImageURL(URL)：指定一个URL地址，用来给ImageSwitcher显示URL指向的图片资源。
+
+**动画效果设定**
+
+　　上面介绍到，ImageSwitcher可以设置图片切换时，动画的效果。对于动画效果的支持，是因为它继承了ViewAnimator类，这个类中定义了两个属性，用来确定切入图片的动画效果和切出图片的动画效果：
+
+*   android:inAnimation：切入图片时的效果。
+*   android:outAnimation：切出图片时的效果。
+
+　　以上两个属性如果在XML中设定的话，当然可以通过XML资源文件自定义动画效果，但是如果只是想使用Android自带的一些简单的效果的话，需要设置参数为“@android:anim/AnimName”来设定效果，其中AnimName为指定的动画效果。如果在代码中设定的话，可以直接使用setInAnimation()和setOutAnimation()方法。它们都传递一个Animation的抽象对象，Animation用于描述一个动画效果，一般使用一个AnimationUtils的工具类获得。对于动画效果，不是本片博客的重点，关于Android的动画效果，以后再详细讲解。
+
+　　对于动画效果，一般定义在[android.R.anim](http://developer.android.com/reference/android/R.anim.html)类中，它是一个final类，以一些int常量的形式，定义的样式，这里仅仅介绍两组样式，淡进淡出效果，以及左进右出滑动效果，如果需要其他效果，可以查阅官方文档。
+
+*   fede\_in：淡进。
+*   fade\_out:淡出
+*   slide\_in\_left:从左滑进。
+*   slide\_out\_right: 从右滑出。
+
+　　一般使用的话，通过这些常量名称就可以看出是什么效果，这里并不是强制Xxx\_in\_Xxx就一定对应了setInAnimation()方法，但是一般如果不成组设定的话，效果会很丑，建议还是成组的对应In和Out设定效果。
+
+**ViewFactory**
+
+　　在使用ImageSwitcher的时候，有一点特别需要注意的，需要通过setFactory()方法为它设置一个ViewSwitcher.ViewFactory接口，设置这个ViewFactory接口时需要实现makeView()方法，该方法通常会返回一个ImageView，而ImageSwitcher则负责显示这个ImageView。如果不设定ViewFactory的话，ImageSwitcher将无法使用。通过官方文档了解到，setFactory()方法被声明在ViewSwitcher类中，而ImageSwitcher直接继承自ViewSwitcher类。ViewSwitcher的功能与ImageSwitcher类似，只是ImageSwitcher用于展示图片，而ViewSwitcher用于展示一些View视图。
+
+　　可以这么理解，通过ViewFactory中的makeView()方法返回一个新的View视图，用来放入ViewSwitcher中展示，而对于ImageSwitcher而言，这里通常返回的是一个ImageView。
+
+**示例程序**
+
+　　下面通过一个Demo来说明上面讲到的内容。在示例中定义一个ImageSwitcher和两个Button，这两个按钮分别控制着图像的上一张、下一张显示，当然，在资源中必须存在这几个待切换的图片文件。。
+
+　　布局代码：
+
+```
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".MainActivity" android:orientation="vertical">
+
+    <ImageSwitcher
+        android:id="@+id/imageSwitcher1"
+        android:layout_width="fill_parent"
+        android:layout_height="150dp"
+         />
+    <Button
+        android:id="@+id/btnadd"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="上一张" />
+    <Button
+        android:id="@+id/btnSub"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:text="下一张" />
+</LinearLayout>
+```
+　　实现代码：
+
+```
+public class MainActivity extends Activity {
+    private Button btnAdd, btnSub;
+    private ImageSwitcher imageSwitcher;
+    private int index = 0;
+    private List<Drawable> list;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        putData();
+        imageSwitcher = (ImageSwitcher) findViewById(R.id.imageSwitcher1);
+        btnAdd = (Button) findViewById(R.id.btnadd);
+        btnSub = (Button) findViewById(R.id.btnSub);
+        btnAdd.setOnClickListener(myClick);
+        btnSub.setOnClickListener(myClick);
+
+        //通过代码设定从左缓进，从右换出的效果。
+        imageSwitcher.setInAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.slide_in_left));
+        imageSwitcher.setOutAnimation(AnimationUtils.loadAnimation(MainActivity.this, android.R.anim.slide_out_right));
+        imageSwitcher.setFactory(new ViewFactory() {
+
+            @Override
+            public View makeView() {
+                // makeView返回的是当前需要显示的ImageView控件，用于填充进ImageSwitcher中。
+                return new ImageView(MainActivity.this);
+            }
+        });
+        imageSwitcher.setImageDrawable(list.get(0));
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    private View.OnClickListener myClick = new OnClickListener() {
+
+        @Override
+        public void onClick(View v) {
+            switch (v.getId()) {
+            case R.id.btnadd:
+                index--;
+                if(index<0)
+                {
+                    //用于循环显示图片
+                    index=list.size()-1;
+                }
+                //设定ImageSwitcher显示新图片
+                imageSwitcher.setImageDrawable(list.get(index));
+                break;
+
+            case R.id.btnSub:
+                index++;
+                if(index>=list.size())
+                {
+                    //用于循环显示图片
+                    index=0;
+                }
+                imageSwitcher.setImageDrawable(list.get(index));
+                break;
+            }
+        }
+    };
+
+    private void putData() {
+        //填充图片的Drawable资源数组
+        list = new ArrayList<Drawable>();
+        list.add(getResources().getDrawable(R.drawable.bmp1));
+        list.add(getResources().getDrawable(R.drawable.bmp2));
+        list.add(getResources().getDrawable(R.drawable.bmp3));
+        list.add(getResources().getDrawable(R.drawable.bmp4));
+        list.add(getResources().getDrawable(R.drawable.bmp5));
+    }
+}
+```
 
 # Android ViewSwitcher简介和使用
 **Android ViewSwitcher简介和使用**
