@@ -26,8 +26,10 @@ public class ViewSwitcherActivity extends AppCompatActivity {
 
 //                如果当前显示的是第一个，那么点击的时候就会显示下一个
                 if (switcher.getDisplayedChild() == 0) {
+//                   switcher.setDisplayedChild(1);切换效果类似
                     switcher.showNext();
                 } else {
+//                   switcher.setDisplayedChild(0);切换效果类似
                     switcher.showPrevious();
                 }
             }

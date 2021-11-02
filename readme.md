@@ -168,19 +168,7 @@ Android ViewSwitcher主要应用场景之一：比如在一个布局文件中，
 典型的应用比如一些社交类APP的标题栏，在分享照片之前，标题栏显示“拍照”按钮，用户拍完照后，接下来的动作是发送这张照片，那么合理的做法就是将标题栏的动作按钮变成“发送”按钮。
 针对此种情况，相对比较简陋的做法是：可以考虑在标题栏事先存放两个按钮：拍照，发送。当前是“拍照”时，则将“发送”按钮设置为GONE；反之，当前是“发送”时，则将“拍照”按钮设置为GONE。
 但是，相对更好的做法是使用ViewSwitcher。ViewSwitcher，故名思议，就是为了完成View之间的Switch。
-现在给出一个完整示例代码例子说明。
 
-测试的MainActivity.java :
-
-```java
-package zhangphil.view; import android.app.Activity;import android.os.Bundle;import android.view.View;import android.view.animation.Animation;import android.view.animation.AnimationUtils;import android.widget.Button;import android.widget.ViewSwitcher; public class MainActivity extends Activity { 	@Override	public void onCreate(Bundle savedInstanceState) {		super.onCreate(savedInstanceState); 		setContentView(R.layout.activity_main); 		Button buttonPrev = (Button) findViewById(R.id.prev);		Button buttonNext = (Button) findViewById(R.id.next); 		final ViewSwitcher viewSwitcher = (ViewSwitcher) findViewById(R.id.viewSwitcher); 		Animation slide_in_left = AnimationUtils.loadAnimation(this, android.R.anim.slide_in_left);		Animation slide_out_right = AnimationUtils.loadAnimation(this, android.R.anim.slide_out_right); 		viewSwitcher.setInAnimation(slide_in_left);		viewSwitcher.setOutAnimation(slide_out_right); 		buttonPrev.setOnClickListener(new View.OnClickListener() { 			@Override			public void onClick(View v) {				// viewSwitcher.showPrevious();切换效果类似				viewSwitcher.setDisplayedChild(0);			}		}); 		buttonNext.setOnClickListener(new View.OnClickListener() { 			@Override			public void onClick(View v) {				// viewSwitcher.showNext();切换效果类似				viewSwitcher.setDisplayedChild(1);			}		});	}}
-```
-
-MainActivity.java需要的布局文件activity\_main.xml :
-
-```html
-<?xml version="1.0" encoding="utf-8"?><LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"    android:layout_width="match_parent"    android:layout_height="match_parent"    android:orientation="vertical" >     <LinearLayout        android:layout_width="match_parent"        android:layout_height="wrap_content"        android:orientation="horizontal" >         <Button            android:id="@+id/prev"            android:layout_width="wrap_content"            android:layout_height="wrap_content"            android:text="前" />         <Button            android:id="@+id/next"            android:layout_width="wrap_content"            android:layout_height="wrap_content"            android:text="后" />    </LinearLayout>     <ViewSwitcher        android:id="@+id/viewSwitcher"        android:layout_width="match_parent"        android:layout_height="wrap_content" >         <Button            android:layout_width="wrap_content"            android:layout_height="wrap_content"            android:text="1" />         <LinearLayout            android:layout_width="match_parent"            android:layout_height="wrap_content"            android:orientation="vertical" >             <Button                android:layout_width="wrap_content"                android:layout_height="wrap_content"                android:text="2" />             <TextView                android:layout_width="wrap_content"                android:layout_height="wrap_content"                android:text="线性布局的TextView" />        </LinearLayout>    </ViewSwitcher> </LinearLayout>
-```
 
 # Android ViewSwitcher 的使用
 ## ViewSwitcher
